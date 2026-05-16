@@ -65,16 +65,23 @@ textarea {
 }
 
 .password-field {
+  caret-color: #2f3846;
   color: #2f3846;
   font-family:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   line-height: 1.5;
-  -webkit-text-fill-color: #2f3846;
 }
 
-.password-field--masked {
-  -webkit-text-security: disc;
+.password-field.text-transparent {
+  -webkit-text-fill-color: transparent;
+}
+
+.password-mask {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.08em;
 }
 
 input::placeholder,

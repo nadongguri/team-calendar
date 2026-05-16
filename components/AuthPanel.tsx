@@ -18,6 +18,7 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const maskedPassword = "●".repeat(password.length);
 
   const helperText = useMemo(() => {
     const shortcuts = [
@@ -107,16 +108,27 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
           <label className="block">
             <span className="text-sm font-medium text-ink">비밀번호</span>
             <span className="mt-1 flex overflow-hidden rounded-md border border-line bg-white focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
-              <input
-                className={`password-field min-w-0 flex-1 border-0 bg-white px-3 py-2 text-base text-ink outline-none placeholder:text-muted ${
-                  showPassword ? "" : "password-field--masked"
-                }`}
-                placeholder="공용 비밀번호"
-                required
-                type="text"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              <span className="relative min-w-0 flex-1 bg-white">
+                {!showPassword && password.length > 0 && (
+                  <span
+                    aria-hidden
+                    className="password-mask pointer-events-none absolute inset-y-0 left-0 flex items-center px-3 text-base text-ink"
+                  >
+                    {maskedPassword}
+                  </span>
+                )}
+                <input
+                  aria-describedby="password-entry-status"
+                  className={`password-field relative z-10 w-full border-0 bg-transparent px-3 py-2 text-base outline-none placeholder:text-muted ${
+                    showPassword ? "text-ink" : "text-transparent"
+                  }`}
+                  placeholder="공용 비밀번호"
+                  required
+                  type="text"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </span>
               <button
                 aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 className="inline-flex size-11 shrink-0 items-center justify-center border-l border-line bg-white text-ink transition hover:bg-panel"
@@ -129,6 +141,12 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
                   <Eye aria-hidden className="size-4" />
                 )}
               </button>
+            </span>
+            <span
+              className="mt-1 block min-h-5 text-xs text-muted"
+              id="password-entry-status"
+            >
+              {password.length > 0 ? `${password.length}자 입력됨` : ""}
             </span>
           </label>
 

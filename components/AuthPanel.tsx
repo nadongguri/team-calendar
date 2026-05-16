@@ -9,6 +9,7 @@ type AuthPanelProps = {
 };
 
 const sharedLoginEmail = process.env.NEXT_PUBLIC_SHARED_LOGIN_EMAIL ?? "";
+const adminLoginEmail = process.env.NEXT_PUBLIC_ADMIN_LOGIN_EMAIL ?? "";
 
 export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
   const [identifier, setIdentifier] = useState("");
@@ -19,11 +20,16 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const helperText = useMemo(() => {
-    if (sharedLoginEmail) {
-      return `공용 ID calendar 또는 ${sharedLoginEmail}로 로그인할 수 있습니다.`;
+    const shortcuts = [
+      sharedLoginEmail ? "calendar" : null,
+      adminLoginEmail ? "admin" : null
+    ].filter(Boolean);
+
+    if (shortcuts.length > 0) {
+      return `ID ${shortcuts.join(", ")} 또는 이메일로 로그인할 수 있습니다.`;
     }
 
-    return "Supabase Auth에 만든 공용 이메일 계정으로 로그인합니다.";
+    return "Supabase Auth에 만든 이메일 계정으로 로그인합니다.";
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -90,7 +96,7 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
               autoCapitalize="none"
               autoCorrect="off"
               className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
-              placeholder={sharedLoginEmail ? "calendar" : "calendar@example.com"}
+              placeholder={getIdentifierPlaceholder()}
               required
               type="text"
               value={identifier}
@@ -160,10 +166,31 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
 
 function normalizeIdentifier(value: string) {
   const trimmedValue = value.trim();
+  const normalizedValue = trimmedValue.toLowerCase();
 
-  if (sharedLoginEmail && trimmedValue.toLowerCase() === "calendar") {
+  if (sharedLoginEmail && normalizedValue === "calendar") {
     return sharedLoginEmail;
   }
 
-  return trimmedValue.toLowerCase();
+  if (adminLoginEmail && normalizedValue === "admin") {
+    return adminLoginEmail;
+  }
+
+  return normalizedValue;
+}
+
+function getIdentifierPlaceholder() {
+  if (sharedLoginEmail && adminLoginEmail) {
+    return "calendar 또는 admin";
+  }
+
+  if (sharedLoginEmail) {
+    return "calendar";
+  }
+
+  if (adminLoginEmail) {
+    return "admin";
+  }
+
+  return "calendar@example.com";
 }

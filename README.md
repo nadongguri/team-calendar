@@ -65,8 +65,10 @@ Cloudflare Pages에서 GitHub 저장소 `nadongguri/team-calendar`를 연결합�
 Cloudflare 화면에서 Deploy command가 필수인 Workers Git 배포 화면을 쓰는 경우에는 아래처럼 정적 assets 배포를 명시합니다.
 
 - Build command: `npm run build`
-- Deploy command: `npx wrangler deploy --assets=out --name team-calendar --compatibility-date=2026-05-16`
+- Deploy command: `npx wrangler deploy`
 - Build output directory: `out`
+
+이 경우 `wrangler.jsonc`의 `assets.directory`가 `./out`으로 설정되어 있어 `out` 폴더가 정적 사이트로 배포됩니다.
 
 Cloudflare Pages의 Environment variables에 아래 값을 넣습니다.
 

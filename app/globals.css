@@ -64,10 +64,17 @@ textarea {
   caret-color: #2f3846;
 }
 
-input[type="password"] {
+.password-field {
   color: #2f3846;
-  -webkit-text-security-color: #2f3846;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  line-height: 1.5;
   -webkit-text-fill-color: #2f3846;
+}
+
+.password-field--masked {
+  -webkit-text-security: disc;
 }
 
 input::placeholder,

@@ -108,10 +108,12 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
             <span className="text-sm font-medium text-ink">비밀번호</span>
             <span className="mt-1 flex overflow-hidden rounded-md border border-line bg-white focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
               <input
-                className="min-w-0 flex-1 border-0 bg-white px-3 py-2 text-base text-ink outline-none placeholder:text-muted"
+                className={`password-field min-w-0 flex-1 border-0 bg-white px-3 py-2 text-base text-ink outline-none placeholder:text-muted ${
+                  showPassword ? "" : "password-field--masked"
+                }`}
                 placeholder="공용 비밀번호"
                 required
-                type={showPassword ? "text" : "password"}
+                type="text"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />

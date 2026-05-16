@@ -206,7 +206,7 @@ export function TeamCalendar({
     setModalError("");
 
     if (activeLists.length === 0) {
-      setNotice("일정을 만들려면 관리자 모드에서 사용할 목록이 하나 이상 필요합니다.");
+      setNotice("사용 가능한 목록이 없습니다. 관리자에게 목록 설정을 요청해 주세요.");
       return;
     }
 
@@ -705,8 +705,9 @@ export function TeamCalendar({
               ))}
               {activeLists.length === 0 && (
                 <p className="rounded-md border border-dashed border-line px-3 py-3 text-sm leading-6 text-muted">
-                  관리자 계정으로 목록을 추가하거나 사용 상태로 바꾸면 여기에
-                  표시됩니다.
+                  {isAdmin
+                    ? "목록을 추가하거나 사용 상태로 바꾸면 여기에 표시됩니다."
+                    : "사용 가능한 목록이 없습니다."}
                 </p>
               )}
             </div>
@@ -731,15 +732,16 @@ export function TeamCalendar({
                 6개월 클린업을 확인할 시점입니다.
               </p>
             )}
-            <button
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!isAdmin}
-              type="button"
-              onClick={openAdminPanel}
-            >
-              <Settings aria-hidden className="size-4" />
-              관리자 모드
-            </button>
+            {isAdmin && (
+              <button
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+                type="button"
+                onClick={openAdminPanel}
+              >
+                <Settings aria-hidden className="size-4" />
+                관리자 모드
+              </button>
+            )}
           </section>
         </aside>
 
@@ -761,15 +763,16 @@ export function TeamCalendar({
                 <Download aria-hidden className="size-4" />
                 저장
               </button>
-              <button
-                className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:bg-panel disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!isAdmin}
-                type="button"
-                onClick={openAdminPanel}
-              >
-                <Settings aria-hidden className="size-4" />
-                관리자
-              </button>
+              {isAdmin && (
+                <button
+                  className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
+                  type="button"
+                  onClick={openAdminPanel}
+                >
+                  <Settings aria-hidden className="size-4" />
+                  관리자
+                </button>
+              )}
             </div>
           </header>
 

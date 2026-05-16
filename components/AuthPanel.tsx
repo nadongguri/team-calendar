@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type AuthPanelProps = {
@@ -16,6 +16,7 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const helperText = useMemo(() => {
     if (sharedLoginEmail) {
@@ -99,13 +100,28 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
 
           <label className="block">
             <span className="text-sm font-medium text-ink">비밀번호</span>
-            <input
-              className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20"
-              required
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+            <span className="mt-1 flex rounded-md border border-line bg-white focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20">
+              <input
+                className="min-w-0 flex-1 rounded-md border-0 bg-white px-3 py-2 text-sm text-ink outline-none placeholder:text-muted"
+                placeholder="공용 비밀번호"
+                required
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <button
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                className="inline-flex size-10 items-center justify-center rounded-md text-muted transition hover:bg-panel hover:text-ink"
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? (
+                  <EyeOff aria-hidden className="size-4" />
+                ) : (
+                  <Eye aria-hidden className="size-4" />
+                )}
+              </button>
+            </span>
           </label>
 
           {error && (

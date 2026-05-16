@@ -58,17 +58,9 @@ Cloudflare Pages에서 GitHub 저장소 `nadongguri/team-calendar`를 연결합�
 - Build command: `npm run build`
 - Output directory: `out`
 - Node.js version: 20 이상
-- Deploy command: 비워 둡니다.
+- Deploy command: 없음
 
-이 프로젝트는 `next.config.ts`에서 `output: "export"`를 사용하므로 Cloudflare Pages가 `out` 폴더를 정적 사이트로 배포해야 합니다. `npx wrangler deploy`를 deploy command에 넣거나 Output directory를 `.next`로 두면 OpenNext/Workers 배포로 전환되어 실패할 수 있습니다.
-
-Cloudflare 화면에서 Deploy command가 필수인 Workers Git 배포 화면을 쓰는 경우에는 아래처럼 정적 assets 배포를 명시합니다.
-
-- Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Build output directory: `out`
-
-이 경우 `wrangler.jsonc`의 `assets.directory`가 `./out`으로 설정되어 있어 `out` 폴더가 정적 사이트로 배포됩니다.
+이 프로젝트는 `next.config.ts`에서 `output: "export"`를 사용하므로 Cloudflare Pages가 `out` 폴더를 정적 사이트로 배포해야 합니다. Workers 프로젝트로 만들면 `*.workers.dev` 주소가 나오고 Wrangler/OpenNext 설정을 요구할 수 있으니, 새 애플리케이션을 만들 때 반드시 **Pages > Connect to Git** 흐름을 선택합니다.
 
 Cloudflare Pages의 Environment variables에 아래 값을 넣습니다.
 

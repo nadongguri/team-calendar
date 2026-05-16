@@ -73,7 +73,9 @@ textarea {
   line-height: 1.5;
 }
 
-.password-field.text-transparent {
+.password-field--hidden {
+  caret-color: transparent;
+  color: transparent;
   -webkit-text-fill-color: transparent;
 }
 

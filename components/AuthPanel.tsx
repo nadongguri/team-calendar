@@ -120,7 +120,7 @@ export function AuthPanel({ onRecoveryMode }: AuthPanelProps) {
                 <input
                   aria-describedby="password-entry-status"
                   className={`password-field relative z-10 w-full border-0 bg-transparent px-3 py-2 text-base outline-none placeholder:text-muted ${
-                    showPassword ? "text-ink" : "text-transparent"
+                    showPassword ? "text-ink" : "password-field--hidden"
                   }`}
                   placeholder="공용 비밀번호"
                   required

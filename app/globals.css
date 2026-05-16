@@ -61,6 +61,13 @@ textarea {
   background-color: #ffffff;
   color: #2f3846;
   -webkit-text-fill-color: #2f3846;
+  caret-color: #2f3846;
+}
+
+input[type="password"] {
+  color: #2f3846;
+  -webkit-text-security-color: #2f3846;
+  -webkit-text-fill-color: #2f3846;
 }
 
 input::placeholder,

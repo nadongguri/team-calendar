@@ -58,6 +58,9 @@ Cloudflare Pages에서 GitHub 저장소 `nadongguri/team-calendar`를 연결합�
 - Build command: `npm run build`
 - Output directory: `out`
 - Node.js version: 20 이상
+- Deploy command: 비워 둡니다.
+
+이 프로젝트는 `next.config.ts`에서 `output: "export"`를 사용하므로 Cloudflare Pages가 `out` 폴더를 정적 사이트로 배포해야 합니다. `npx wrangler deploy`를 deploy command에 넣거나 Output directory를 `.next`로 두면 OpenNext/Workers 배포로 전환되어 실패할 수 있습니다.
 
 Cloudflare Pages의 Environment variables에 아래 값을 넣습니다.
 

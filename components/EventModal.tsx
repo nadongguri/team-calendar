@@ -376,9 +376,9 @@ function DateTimeField({
 function createTimeOptions() {
   const options: string[] = [];
 
-  for (let hour = 7; hour <= 22; hour += 1) {
-    for (let minute = 0; minute < 60; minute += 10) {
-      if (hour === 22 && minute > 0) {
+  for (let hour = 8; hour <= 18; hour += 1) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      if (hour === 18 && minute > 0) {
         break;
       }
 
@@ -396,8 +396,8 @@ function getDatePart(value: string) {
 }
 
 function getTimePart(value: string) {
-  const time = value.split("T")[1]?.slice(0, 5) ?? "09:00";
-  return timeOptions.includes(time) ? time : "09:00";
+  const time = value.split("T")[1]?.slice(0, 5) ?? "08:00";
+  return timeOptions.includes(time) ? time : "08:00";
 }
 
 function combineDateAndTime(date: string, time: string) {

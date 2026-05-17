@@ -35,12 +35,12 @@ export function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60_000);
 }
 
-export function isTenMinuteBoundary(value: string) {
+export function isThirtyMinuteBoundary(value: string) {
   const date = new Date(value);
   return (
     date.getSeconds() === 0 &&
     date.getMilliseconds() === 0 &&
-    date.getMinutes() % 10 === 0
+    date.getMinutes() % 30 === 0
   );
 }
 

@@ -146,7 +146,7 @@ input:-webkit-autofill:focus {
 }
 
 .fc .fc-timegrid-slot {
-  height: 1.45rem;
+  height: 1.35rem;
 }
 
 .fc .fc-timegrid-slot-label-cushion {
@@ -163,9 +163,14 @@ input:-webkit-autofill:focus {
 }
 
 @media (max-width: 840px) {
+  .fc {
+    font-size: 0.75rem;
+  }
+
   .fc .fc-toolbar {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.5rem;
   }
 
   .fc .fc-toolbar-chunk {
@@ -173,6 +178,25 @@ input:-webkit-autofill:focus {
   }
 
   .fc .fc-button {
-    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.48rem;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1rem;
+  }
+
+  .fc .fc-timegrid-slot {
+    height: 1.05rem;
+  }
+
+  .fc .fc-timegrid-slot-label-cushion,
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.72rem;
+  }
+
+  .fc .fc-event {
+    font-size: 0.68rem;
+    padding: 0 2px;
   }
 }

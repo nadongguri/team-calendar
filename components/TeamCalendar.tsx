@@ -24,7 +24,7 @@ import {
   dateTimeLocalToIso,
   formatRelativeSaveTime,
   getSixMonthCleanupCutoff,
-  isTenMinuteBoundary
+  isThirtyMinuteBoundary
 } from "@/lib/date";
 import {
   buildDownloadPayload,
@@ -256,8 +256,8 @@ export function TeamCalendar({
       return;
     }
 
-    if (!isTenMinuteBoundary(startIso) || !isTenMinuteBoundary(endIso)) {
-      setModalError("일정 시간은 10분 단위로 선택해 주세요.");
+    if (!isThirtyMinuteBoundary(startIso) || !isThirtyMinuteBoundary(endIso)) {
+      setModalError("일정 시간은 30분 단위로 선택해 주세요.");
       setSubmitting(false);
       return;
     }
@@ -685,7 +685,7 @@ export function TeamCalendar({
               {activeLists.map((list) => (
                 <label
                   key={list.id}
-                  className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm text-ink transition hover:bg-panel"
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs text-ink transition hover:bg-panel sm:gap-3 sm:py-2 sm:text-sm"
                 >
                   <input
                     checked={visibleListIds.includes(list.id)}
@@ -824,7 +824,7 @@ export function TeamCalendar({
               selectable
               selectMirror
               select={openCreateModal}
-              slotDuration="00:10:00"
+              slotDuration="00:30:00"
               slotLabelFormat={{
                 hour: "2-digit",
                 hour12: false,
@@ -832,7 +832,7 @@ export function TeamCalendar({
               }}
               slotMaxTime="18:00:00"
               slotMinTime="08:00:00"
-              snapDuration="00:10:00"
+              snapDuration="00:30:00"
               weekends={false}
             />
           )}
@@ -924,7 +924,7 @@ function getNextHour() {
     start.setHours(8, 0, 0, 0);
   }
 
-  if (start.getHours() >= 18) {
+  if (start.getHours() > 17) {
     start.setDate(start.getDate() + 1);
     start.setHours(8, 0, 0, 0);
   }

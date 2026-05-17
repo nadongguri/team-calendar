@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import {
   Download,
   Eraser,
@@ -60,7 +60,20 @@ export function AdminPanel({
 }: AdminPanelProps) {
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(colorPresets[0]);
+  const [draftNames, setDraftNames] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    setDraftNames((current) => {
+      const nextDrafts: Record<string, string> = {};
+
+      lists.forEach((list) => {
+        nextDrafts[list.id] = current[list.id] ?? list.name;
+      });
+
+      return nextDrafts;
+    });
+  }, [lists]);
 
   function handleAddList() {
     const trimmedName = newName.trim();
@@ -81,6 +94,35 @@ export function AdminPanel({
     }
 
     event.target.value = "";
+  }
+
+  function updateDraftName(id: string, name: string) {
+    setDraftNames((current) => ({
+      ...current,
+      [id]: name
+    }));
+  }
+
+  function commitDraftName(list: CalendarList) {
+    const draftName = (draftNames[list.id] ?? list.name).trim();
+
+    if (!draftName) {
+      setDraftNames((current) => ({
+        ...current,
+        [list.id]: list.name
+      }));
+      return;
+    }
+
+    if (draftName !== list.name) {
+      onUpdateList(list.id, { name: draftName });
+    }
+  }
+
+  function handleNameKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+    }
   }
 
   return (
@@ -174,10 +216,12 @@ export function AdminPanel({
                   <input
                     className="min-w-0 rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                     maxLength={40}
-                    value={list.name}
+                    value={draftNames[list.id] ?? list.name}
                     onChange={(event) =>
-                      onUpdateList(list.id, { name: event.target.value })
+                      updateDraftName(list.id, event.target.value)
                     }
+                    onBlur={() => commitDraftName(list)}
+                    onKeyDown={handleNameKeyDown}
                   />
                   <input
                     aria-label={`${list.name} 색상`}

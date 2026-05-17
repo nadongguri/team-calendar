@@ -60,7 +60,7 @@ export function getDefaultCreateRange(start: Date, allDay?: boolean) {
   }
 
   const normalizedStart = new Date(start);
-  normalizedStart.setHours(9, 0, 0, 0);
+  normalizedStart.setHours(8, 0, 0, 0);
 
   return {
     start: normalizedStart,

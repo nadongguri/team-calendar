@@ -830,8 +830,8 @@ export function TeamCalendar({
                 hour12: false,
                 minute: "2-digit"
               }}
-              slotMaxTime="22:00:00"
-              slotMinTime="07:00:00"
+              slotMaxTime="18:00:00"
+              slotMinTime="08:00:00"
               snapDuration="00:10:00"
               weekends
             />
@@ -911,7 +911,7 @@ function mapEventRow(row: CalendarEventRow): CalendarItem {
 
 function normalizeAllDayStart(value: Date) {
   const start = new Date(value);
-  start.setHours(9, 0, 0, 0);
+  start.setHours(8, 0, 0, 0);
   return start;
 }
 
@@ -920,13 +920,13 @@ function getNextHour() {
   start.setMinutes(0, 0, 0);
   start.setHours(start.getHours() + 1);
 
-  if (start.getHours() < 7) {
-    start.setHours(9, 0, 0, 0);
+  if (start.getHours() < 8) {
+    start.setHours(8, 0, 0, 0);
   }
 
-  if (start.getHours() >= 22) {
+  if (start.getHours() >= 18) {
     start.setDate(start.getDate() + 1);
-    start.setHours(9, 0, 0, 0);
+    start.setHours(8, 0, 0, 0);
   }
 
   return start;

@@ -25,6 +25,7 @@ create table if not exists public.calendar_events (
   author text not null check (char_length(trim(author)) between 1 and 80),
   title text not null check (char_length(trim(title)) between 1 and 120),
   content text not null default '',
+  all_day boolean not null default false,
   start_time timestamptz not null,
   end_time timestamptz not null,
   created_by_user_id uuid not null references auth.users(id) on delete cascade,
@@ -33,6 +34,9 @@ create table if not exists public.calendar_events (
   updated_at timestamptz not null default now(),
   constraint calendar_events_time_check check (end_time > start_time)
 );
+
+alter table public.calendar_events
+add column if not exists all_day boolean not null default false;
 
 create index if not exists calendar_events_start_time_idx
   on public.calendar_events(start_time);

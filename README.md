@@ -52,6 +52,8 @@ on conflict (email) do nothing;
 
 관리자 이메일로 로그인하면 목록 관리, 백업 복원, 초기화, 6개월 클린업을 사용할 수 있습니다. 일반 로그인 사용자는 일정 조회/작성/수정/삭제가 가능합니다. 로그인 화면에서는 `calendar`와 `admin` 짧은 ID를 사용할 수 있습니다.
 
+이미 운영 중인 DB에 종일 일정 컬럼만 추가해야 하는 경우에는 [supabase/migrations/20260608_add_event_all_day.sql](/Users/nadongguri/Documents/New%20project%203/supabase/migrations/20260608_add_event_all_day.sql)를 SQL Editor에서 실행합니다.
+
 ## Cloudflare Pages 배포
 
 Cloudflare Pages에서 GitHub 저장소 `nadongguri/team-calendar`를 연결합니다.

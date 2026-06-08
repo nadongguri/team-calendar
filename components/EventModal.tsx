@@ -14,6 +14,7 @@ type EventModalProps = {
   lists: CalendarList[];
   selectedStart?: Date | null;
   selectedEnd?: Date | null;
+  selectedAllDay?: boolean;
   error?: string;
   submitting: boolean;
   onClose: () => void;
@@ -30,6 +31,7 @@ export function EventModal({
   lists,
   selectedStart,
   selectedEnd,
+  selectedAllDay = false,
   error,
   submitting,
   onClose,
@@ -49,6 +51,7 @@ export function EventModal({
       author: event?.author ?? "",
       title: event?.title ?? "",
       content: event?.content ?? "",
+      allDay: event?.allDay ?? selectedAllDay,
       start: toDateTimeLocalValue(
         event?.start ?? selectedStart ?? new Date()
       ),
@@ -58,7 +61,7 @@ export function EventModal({
           new Date((selectedStart ?? new Date()).getTime() + 60 * 60 * 1000)
       )
     };
-  }, [activeLists, event, selectedEnd, selectedStart]);
+  }, [activeLists, event, selectedAllDay, selectedEnd, selectedStart]);
 
   const [values, setValues] = useState(initialValues);
 
@@ -78,6 +81,28 @@ export function EventModal({
     if (!isReadOnly) {
       onSubmit(values);
     }
+  }
+
+  function updateAllDay(checked: boolean) {
+    setValues((current) => {
+      const startDate = getDatePart(current.start);
+
+      if (checked) {
+        return {
+          ...current,
+          allDay: true,
+          start: combineDateAndTime(startDate, "00:00"),
+          end: combineAllDayEnd(startDate)
+        };
+      }
+
+      return {
+        ...current,
+        allDay: false,
+        start: combineDateAndTime(startDate, "08:00"),
+        end: combineDateAndTime(startDate, "09:00")
+      };
+    });
   }
 
   function handleDelete() {
@@ -141,7 +166,9 @@ export function EventModal({
                 {event.title}
               </h3>
               <p className="mt-2 text-sm text-muted">
-                {formatDateRange(event.start, event.end)}
+                {event.allDay
+                  ? formatAllDayRange(event.start, event.end)
+                  : formatDateRange(event.start, event.end)}
               </p>
             </div>
 
@@ -219,13 +246,25 @@ export function EventModal({
               </div>
             </fieldset>
 
+            <label className="flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-2 text-sm font-semibold text-ink">
+              <input
+                checked={values.allDay}
+                className="size-4 accent-[#0e4e96]"
+                type="checkbox"
+                onChange={(inputEvent) => updateAllDay(inputEvent.target.checked)}
+              />
+              종일 일정
+            </label>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <DateTimeField
+                allDay={values.allDay}
                 label="시작"
                 value={values.start}
                 onChange={(value) => updateValue("start", value)}
               />
               <DateTimeField
+                allDay={values.allDay}
                 label="종료"
                 value={values.end}
                 onChange={(value) => updateValue("end", value)}
@@ -330,44 +369,61 @@ function DetailBlock({ label, value }: { label: string; value: string }) {
 }
 
 function DateTimeField({
+  allDay,
   label,
   value,
   onChange
 }: {
+  allDay: boolean;
   label: string;
   value: string;
   onChange: (value: string) => void;
 }) {
   const date = getDatePart(value);
   const time = getTimePart(value);
+  const allDayEndDate = getAllDayEndDatePart(value);
 
   return (
     <fieldset>
-      <legend className="text-sm font-medium text-ink">{label}</legend>
-      <div className="mt-1 grid grid-cols-[minmax(0,1fr)_7rem] gap-2">
+      <legend className="text-sm font-medium text-ink">
+        {allDay ? `${label}일` : label}
+      </legend>
+      <div
+        className={`mt-1 grid gap-2 ${
+          allDay ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_7rem]"
+        }`}
+      >
         <input
           className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           required
           type="date"
-          value={date}
+          value={allDay && label === "종료" ? allDayEndDate : date}
           onChange={(inputEvent) =>
-            onChange(combineDateAndTime(inputEvent.target.value, time))
+            onChange(
+              allDay
+                ? label === "종료"
+                  ? combineAllDayEnd(inputEvent.target.value)
+                  : combineDateAndTime(inputEvent.target.value, "00:00")
+                : combineDateAndTime(inputEvent.target.value, time)
+            )
           }
         />
-        <select
-          className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-          required
-          value={time}
-          onChange={(inputEvent) =>
-            onChange(combineDateAndTime(date, inputEvent.target.value))
-          }
-        >
-          {timeOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        {!allDay && (
+          <select
+            className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            required
+            value={time}
+            onChange={(inputEvent) =>
+              onChange(combineDateAndTime(date, inputEvent.target.value))
+            }
+          >
+            {timeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </fieldset>
   );
@@ -402,4 +458,39 @@ function getTimePart(value: string) {
 
 function combineDateAndTime(date: string, time: string) {
   return `${date}T${time}`;
+}
+
+function combineAllDayEnd(date: string) {
+  const end = new Date(`${date}T00:00`);
+  end.setDate(end.getDate() + 1);
+  return toDateTimeLocalValue(end);
+}
+
+function getAllDayEndDatePart(value: string) {
+  const end = new Date(`${getDatePart(value)}T00:00`);
+  end.setDate(end.getDate() - 1);
+  return toDateInputValue(end);
+}
+
+function toDateInputValue(value: Date) {
+  return toDateTimeLocalValue(value).slice(0, 10);
+}
+
+function formatAllDayRange(start: string, end: string) {
+  const startText = formatDateOnly(start);
+  const inclusiveEnd = new Date(end);
+  inclusiveEnd.setDate(inclusiveEnd.getDate() - 1);
+  const endText = formatDateOnly(inclusiveEnd);
+
+  return startText === endText
+    ? `${startText} 종일`
+    : `${startText} - ${endText} 종일`;
+}
+
+function formatDateOnly(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium"
+  }).format(date);
 }

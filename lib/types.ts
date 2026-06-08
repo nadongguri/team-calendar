@@ -13,6 +13,7 @@ export type CalendarItem = {
   author: string;
   title: string;
   content: string;
+  allDay: boolean;
   start: string;
   end: string;
   createdAt: string;
@@ -32,6 +33,7 @@ export type EventFormValues = {
   author: string;
   title: string;
   content: string;
+  allDay: boolean;
   start: string;
   end: string;
 };
@@ -51,6 +53,7 @@ export type CalendarEventRow = {
   author: string;
   title: string;
   content: string;
+  all_day: boolean;
   start_time: string;
   end_time: string;
   created_at: string;

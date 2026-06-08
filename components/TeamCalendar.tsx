@@ -55,6 +55,7 @@ type ModalState =
       event: null;
       start: Date;
       end: Date;
+      allDay: boolean;
     }
   | {
       kind: "edit" | "view";
@@ -95,7 +96,7 @@ export function TeamCalendar({
         .order("created_at", { ascending: true }),
       supabase
         .from("calendar_events")
-        .select("id, list_id, author, title, content, start_time, end_time, created_at, updated_at")
+        .select("id, list_id, author, title, content, all_day, start_time, end_time, created_at, updated_at")
         .order("start_time", { ascending: true }),
       supabase
         .from("calendar_settings")
@@ -183,6 +184,7 @@ export function TeamCalendar({
 
         return {
           id: event.id,
+          allDay: event.allDay,
           title: event.title,
           start: event.start,
           end: event.end,
@@ -210,18 +212,22 @@ export function TeamCalendar({
       return;
     }
 
-    const start = selection?.allDay
-      ? normalizeAllDayStart(selection.start)
-      : selection?.start ?? getNextHour();
-    const end = selection?.allDay
-      ? addMinutes(start, 60)
-      : selection?.end ?? addMinutes(start, 60);
+    const allDay = selection?.allDay === true;
+    const start =
+      allDay && selection
+        ? normalizeAllDayStart(selection.start)
+        : selection?.start ?? getNextHour();
+    const end =
+      allDay && selection
+        ? selection.end ?? getNextAllDayEnd(start)
+        : selection?.end ?? addMinutes(start, 60);
 
     setModal({
       kind: "create",
       event: null,
       start,
-      end
+      end,
+      allDay
     });
   }
 
@@ -276,6 +282,7 @@ export function TeamCalendar({
       author: trimmedAuthor,
       title: trimmedTitle,
       content: values.content.trim(),
+      all_day: values.allDay,
       start_time: startIso,
       end_time: endIso
     };
@@ -573,6 +580,7 @@ export function TeamCalendar({
           author: event.author,
           title: event.title,
           content: event.content,
+          all_day: event.allDay,
           start_time: event.start,
           end_time: event.end,
           created_by_user_id: userId,
@@ -801,7 +809,7 @@ export function TeamCalendar({
             </div>
           ) : (
             <FullCalendar
-              allDaySlot={false}
+              allDaySlot
               buttonText={{
                 day: "일",
                 month: "월",
@@ -847,6 +855,7 @@ export function TeamCalendar({
           mode={modal.kind}
           selectedEnd={modal.end}
           selectedStart={modal.start}
+          selectedAllDay={modal.kind === "create" ? modal.allDay : false}
           submitting={submitting}
           onClose={() => setModal(null)}
           onDelete={deleteEvent}
@@ -902,6 +911,7 @@ function mapEventRow(row: CalendarEventRow): CalendarItem {
     author: row.author,
     title: row.title,
     content: row.content,
+    allDay: row.all_day,
     start: row.start_time,
     end: row.end_time,
     createdAt: row.created_at,
@@ -911,8 +921,15 @@ function mapEventRow(row: CalendarEventRow): CalendarItem {
 
 function normalizeAllDayStart(value: Date) {
   const start = new Date(value);
-  start.setHours(8, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
   return start;
+}
+
+function getNextAllDayEnd(start: Date) {
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  end.setHours(0, 0, 0, 0);
+  return end;
 }
 
 function getNextHour() {
@@ -937,6 +954,7 @@ type EventInsertPayload = {
   author: string;
   title: string;
   content: string;
+  all_day: boolean;
   start_time: string;
   end_time: string;
   created_by_user_id: string;

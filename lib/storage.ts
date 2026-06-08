@@ -106,6 +106,7 @@ function normalizeEvent(value: unknown): CalendarItem | null {
   const author = typeof value.author === "string" ? value.author.trim() : "";
   const title = typeof value.title === "string" ? value.title.trim() : "";
   const content = typeof value.content === "string" ? value.content : "";
+  const allDay = typeof value.allDay === "boolean" ? value.allDay : false;
   const start = typeof value.start === "string" ? value.start : "";
   const end = typeof value.end === "string" ? value.end : "";
 
@@ -119,6 +120,7 @@ function normalizeEvent(value: unknown): CalendarItem | null {
     author,
     title,
     content,
+    allDay,
     start,
     end,
     createdAt: typeof value.createdAt === "string" ? value.createdAt : now,

@@ -24,6 +24,12 @@ type EventModalProps = {
 };
 
 const timeOptions = createTimeOptions();
+const meetingDurations = [
+  { label: "30분", minutes: 30 },
+  { label: "1시간", minutes: 60 },
+  { label: "1시간 30분", minutes: 90 },
+  { label: "2시간", minutes: 120 }
+];
 
 export function EventModal({
   mode,
@@ -64,6 +70,7 @@ export function EventModal({
   }, [activeLists, event, selectedAllDay, selectedEnd, selectedStart]);
 
   const [values, setValues] = useState(initialValues);
+  const selectedDuration = getDurationMinutes(values.start, values.end);
 
   function updateValue<K extends keyof EventFormValues>(
     key: K,
@@ -105,6 +112,65 @@ export function EventModal({
     });
   }
 
+  function updateStart(value: string) {
+    setValues((current) => {
+      const nextStart = new Date(value);
+
+      if (Number.isNaN(nextStart.getTime())) {
+        return {
+          ...current,
+          start: value
+        };
+      }
+
+      if (current.allDay) {
+        const currentStart = new Date(current.start);
+        const currentEnd = new Date(current.end);
+        const currentDuration = currentEnd.getTime() - currentStart.getTime();
+        const duration =
+          Number.isFinite(currentDuration) && currentDuration > 0
+            ? currentDuration
+            : 24 * 60 * 60 * 1000;
+
+        return {
+          ...current,
+          start: value,
+          end: toDateTimeLocalValue(new Date(nextStart.getTime() + duration))
+        };
+      }
+
+      const currentDuration = getDurationMinutes(current.start, current.end);
+      const duration = currentDuration > 0 ? currentDuration : 60;
+      const closingTime = new Date(nextStart);
+      closingTime.setHours(18, 0, 0, 0);
+
+      let nextEnd = new Date(nextStart.getTime() + duration * 60_000);
+
+      if (nextEnd > closingTime) {
+        nextEnd = closingTime;
+      }
+
+      return {
+        ...current,
+        start: value,
+        end: toDateTimeLocalValue(nextEnd)
+      };
+    });
+  }
+
+  function updateDuration(minutes: number) {
+    setValues((current) => {
+      const start = new Date(current.start);
+
+      return {
+        ...current,
+        end: toDateTimeLocalValue(
+          new Date(start.getTime() + minutes * 60_000)
+        )
+      };
+    });
+  }
+
   function handleDelete() {
     if (!event) {
       return;
@@ -120,11 +186,11 @@ export function EventModal({
   return (
     <div
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-8"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 sm:items-center sm:px-4 sm:py-8"
       role="dialog"
     >
-      <section className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-line bg-white shadow-soft">
-        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+      <section className="max-h-[calc(100dvh-1rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-t-lg border border-line bg-white pb-[env(safe-area-inset-bottom)] shadow-soft sm:max-h-[92vh] sm:rounded-lg sm:pb-0">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-white px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-accent">
               <CalendarClock aria-hidden className="size-4" />
@@ -132,7 +198,12 @@ export function EventModal({
             </div>
             <h2 className="mt-1 text-lg font-bold text-ink">
               {mode === "create"
-                ? "새 일정"
+                ? (
+                    <>
+                      <span className="sm:hidden">회의 예약</span>
+                      <span className="hidden sm:inline">새 일정</span>
+                    </>
+                  )
                 : mode === "edit"
                   ? "일정 수정"
                   : "일정 상세"}
@@ -213,10 +284,10 @@ export function EventModal({
             </div>
           </div>
         ) : (
-          <form className="space-y-4 px-5 py-5" onSubmit={handleSubmit}>
+          <form className="space-y-4 px-4 py-4 sm:px-5 sm:py-5" onSubmit={handleSubmit}>
             <fieldset>
               <legend className="text-sm font-medium text-ink">목록</legend>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div className="mt-2 grid grid-cols-2 gap-2">
                 {activeLists.map((list) => {
                   const selected = values.listId === list.id;
 
@@ -261,7 +332,7 @@ export function EventModal({
                 allDay={values.allDay}
                 label="시작"
                 value={values.start}
-                onChange={(value) => updateValue("start", value)}
+                onChange={updateStart}
               />
               <DateTimeField
                 allDay={values.allDay}
@@ -271,10 +342,46 @@ export function EventModal({
               />
             </div>
 
+            {!values.allDay && (
+              <fieldset className="sm:hidden">
+                <legend className="text-sm font-medium text-ink">
+                  회의 시간
+                </legend>
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {meetingDurations.map((duration) => {
+                    const selected = selectedDuration === duration.minutes;
+                    const disabled = !canApplyDuration(
+                      values.start,
+                      duration.minutes
+                    );
+
+                    return (
+                      <button
+                        key={duration.minutes}
+                        aria-pressed={selected}
+                        className={`min-h-11 rounded-md border px-1 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-35 ${
+                          selected
+                            ? "border-accent bg-blue-50 text-accent ring-2 ring-accent/20"
+                            : "border-line bg-white text-ink active:bg-panel"
+                        }`}
+                        disabled={disabled}
+                        type="button"
+                        onClick={() => updateDuration(duration.minutes)}
+                      >
+                        {duration.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
+
             <label className="block">
               <span className="text-sm font-medium text-ink">작성자</span>
               <input
-                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                autoComplete="name"
+                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:text-sm"
+                enterKeyHint="next"
                 maxLength={80}
                 placeholder="이름 또는 팀명"
                 required
@@ -288,7 +395,8 @@ export function EventModal({
             <label className="block">
               <span className="text-sm font-medium text-ink">제목</span>
               <input
-                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:text-sm"
+                enterKeyHint="next"
                 maxLength={120}
                 required
                 value={values.title}
@@ -301,7 +409,7 @@ export function EventModal({
             <label className="block">
               <span className="text-sm font-medium text-ink">내용</span>
               <textarea
-                className="mt-1 min-h-28 w-full rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="mt-1 min-h-24 w-full rounded-md border border-line px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:min-h-28 sm:text-sm"
                 placeholder="없음"
                 value={values.content}
                 onChange={(inputEvent) =>
@@ -316,7 +424,7 @@ export function EventModal({
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+            <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-4 py-3 sm:static sm:mx-0 sm:mb-0 sm:px-0 sm:pb-0 sm:pt-4">
               <div>
                 {mode === "edit" && event && (
                   <button
@@ -394,7 +502,7 @@ function DateTimeField({
         }`}
       >
         <input
-          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="w-full min-w-0 rounded-md border border-line px-2 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:px-3 sm:text-sm"
           required
           type="date"
           value={allDay && label === "종료" ? allDayEndDate : date}
@@ -410,14 +518,14 @@ function DateTimeField({
         />
         {!allDay && (
           <select
-            className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            className="w-full rounded-md border border-line bg-white px-2 py-2 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:px-3 sm:text-sm"
             required
             value={time}
             onChange={(inputEvent) =>
               onChange(combineDateAndTime(date, inputEvent.target.value))
             }
           >
-            {timeOptions.map((option) => (
+            {getTimeOptions(label).map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -445,6 +553,43 @@ function createTimeOptions() {
   }
 
   return options;
+}
+
+function getTimeOptions(label: string) {
+  if (label === "시작") {
+    return timeOptions.slice(0, -1);
+  }
+
+  if (label === "종료") {
+    return timeOptions.slice(1);
+  }
+
+  return timeOptions;
+}
+
+function getDurationMinutes(start: string, end: string) {
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    return 0;
+  }
+
+  return Math.round((endTime - startTime) / 60_000);
+}
+
+function canApplyDuration(start: string, duration: number) {
+  const startTime = new Date(start);
+
+  if (Number.isNaN(startTime.getTime())) {
+    return false;
+  }
+
+  const endTime = new Date(startTime.getTime() + duration * 60_000);
+  const closingTime = new Date(startTime);
+  closingTime.setHours(18, 0, 0, 0);
+
+  return endTime <= closingTime;
 }
 
 function getDatePart(value: string) {

@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
+import interactionPlugin, {
+  type DateClickArg
+} from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import koLocale from "@fullcalendar/core/locales/ko";
 import type { DateSelectArg, EventClickArg, EventInput } from "@fullcalendar/core";
@@ -65,6 +67,10 @@ type ModalState =
     }
   | null;
 
+type CalendarSelection = Pick<DateSelectArg, "allDay" | "end" | "start">;
+
+const mobileCalendarQuery = "(max-width: 840px)";
+
 export function TeamCalendar({
   userEmail,
   userId,
@@ -83,6 +89,7 @@ export function TeamCalendar({
   const [modalError, setModalError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState("");
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const normalizedUserEmail = userEmail.toLowerCase();
 
   const loadData = useCallback(async () => {
@@ -141,6 +148,16 @@ export function TeamCalendar({
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(mobileCalendarQuery);
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   useEffect(() => {
     setVisibleListIds((current) => {
@@ -204,7 +221,7 @@ export function TeamCalendar({
   const cleanupDue =
     !lastCleanedAt || new Date(lastCleanedAt) < cleanupCutoff;
 
-  function openCreateModal(selection?: DateSelectArg) {
+  function openCreateModal(selection?: CalendarSelection) {
     setModalError("");
 
     if (activeLists.length === 0) {
@@ -228,6 +245,24 @@ export function TeamCalendar({
       start,
       end,
       allDay
+    });
+  }
+
+  function openCreateFromDateClick(clickInfo: DateClickArg) {
+    if (!isMobileViewport) {
+      return;
+    }
+
+    const start = clickInfo.allDay
+      ? normalizeAllDayStart(clickInfo.date)
+      : clickInfo.date;
+
+    openCreateModal({
+      allDay: clickInfo.allDay,
+      start,
+      end: clickInfo.allDay
+        ? getNextAllDayEnd(start)
+        : addMinutes(start, 30)
     });
   }
 
@@ -667,7 +702,8 @@ export function TeamCalendar({
               onClick={() => openCreateModal()}
             >
               <Plus aria-hidden className="size-4" />
-              새 일정
+              <span className="sm:hidden">회의 예약</span>
+              <span className="hidden sm:inline">새 일정</span>
             </button>
             <button
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
@@ -764,6 +800,14 @@ export function TeamCalendar({
             </div>
             <div className="flex flex-wrap gap-2">
               <button
+                className="inline-flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white transition active:bg-blue-900 sm:hidden"
+                type="button"
+                onClick={() => openCreateModal()}
+              >
+                <Plus aria-hidden className="size-4" />
+                회의 예약
+              </button>
+              <button
                 className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:bg-panel"
                 type="button"
                 onClick={exportBackup}
@@ -809,6 +853,7 @@ export function TeamCalendar({
             </div>
           ) : (
             <FullCalendar
+              key={isMobileViewport ? "mobile" : "desktop"}
               allDaySlot
               buttonText={{
                 day: "일",
@@ -817,21 +862,31 @@ export function TeamCalendar({
                 week: "주"
               }}
               editable={false}
+              dateClick={openCreateFromDateClick}
               eventClick={openEventModal}
               events={calendarEvents}
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay"
-              }}
+              headerToolbar={
+                isMobileViewport
+                  ? {
+                      left: "prev,next today",
+                      center: "title",
+                      right: "timeGridDay,timeGridWeek"
+                    }
+                  : {
+                      left: "prev,next today",
+                      center: "title",
+                      right: "dayGridMonth,timeGridWeek,timeGridDay"
+                    }
+              }
               height="auto"
-              initialView="timeGridWeek"
+              initialView={isMobileViewport ? "timeGridDay" : "timeGridWeek"}
               locale={koLocale}
               nowIndicator
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               selectable
               selectMirror
               select={openCreateModal}
+              selectLongPressDelay={300}
               slotDuration="00:30:00"
               slotLabelFormat={{
                 hour: "2-digit",
